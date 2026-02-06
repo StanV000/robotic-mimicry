@@ -1,0 +1,23 @@
+# ROS 2 build artifacts
+build/
+install/
+log/
+
+# Python cache files
+*.pyc
+__pycache__/
+
+# ROS2 resource index
+share/ament_index/
+
+# Local editor configs 
+.vscode/
+.idea/
+
+# Model files
+*.pt
+*.onnx
+
+# OS files
+.DS_Store
+Thumbs.db
