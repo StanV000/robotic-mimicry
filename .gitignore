@@ -21,3 +21,5 @@ share/ament_index/
 # OS files
 .DS_Store
 Thumbs.db
+src/yolo_ros/
+src/yolov8_ros2/
