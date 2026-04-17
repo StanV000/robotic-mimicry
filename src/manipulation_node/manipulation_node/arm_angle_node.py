@@ -16,7 +16,7 @@ class ArmAngleNode(Node):
         )
         self.joint_pub = self.create_publisher(
             JointGroupCommand,
-            '/px150/commands/joint_group',
+            '/wx200/commands/joint_group',
             10
         )
         self.last_publish_time = self.get_clock().now()
@@ -78,21 +78,21 @@ class ArmAngleNode(Node):
         msg_out      = JointGroupCommand()
         msg_out.name = 'arm'
         #below for simulation
-        # msg_out.cmd  = [
-        #     0.0,            # waist
-        #     smooth_shoulder, # shoulder
-        #     smooth_elbow,    # elbow
-        #     0.0,            # forearm_roll
-        #     0.0,            # wrist_angle
-        #     0.0             # wrist_rotate
-        # ]
-        #actual robot integration 5 degrees of freedom, but we only use 4, dont' need wrist rotate
-        msg_out.cmd = [
-            0.0,           # waist
-            shoulder_cmd,  # shoulder
-            elbow_cmd,     # elbow
-            0.0,           # wrist_angle
+        msg_out.cmd  = [
+            0.0,            # waist
+            smooth_shoulder, # shoulder
+            smooth_elbow,    # elbow
+            0.0,            # forearm_roll
+            0.0,            # wrist_angle
+            0.0             # wrist_rotate
         ]
+        #actual robot integration 5 degrees of freedom, but we only use 4, dont' need wrist rotate
+        # msg_out.cmd = [
+        #     0.0,           # waist
+        #     shoulder_cmd,  # shoulder
+        #     elbow_cmd,     # elbow
+        #     0.0,           # wrist_angle
+        # ]
 
         self.joint_pub.publish(msg_out)
 
