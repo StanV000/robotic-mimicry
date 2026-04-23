@@ -25,7 +25,10 @@ setup(
     entry_points={
     'console_scripts': [
         'manipulation_keypoints = manipulation_node.manipulation_keypoints:main',
-        'arm_angle_node = manipulation_node.arm_angle_node:main',
+        'arm_simulation     = manipulation_node.arm_simulation:main',
+        'arm_hardware_integration = manipulation_node.arm_hardware_integration:main',
+        'arm_angle_node     = manipulation_node.arm_angle_node:main',
+        'err_analysis      = manipulation_node.err_analysis:main',
     ],
 },
 )
