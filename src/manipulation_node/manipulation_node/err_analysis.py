@@ -5,6 +5,7 @@ from interbotix_xs_msgs.msg import JointGroupCommand
 import csv
 import time
 import os
+import psutil
 
 class PoseLogger(Node):
     def __init__(self):
@@ -16,16 +17,28 @@ class PoseLogger(Node):
         self.cmd_shoulder    = None
         self.cmd_elbow       = None
         self.t0              = None
-        save_dir = os.path.expanduser('~/ros2_ws/src/manipulation_node/manipulation_node')
-        file_path = os.path.join(save_dir, '45_degree_pose.csv')
 
-        self.csv_file = open(file_path, 'w', newline='')
-        self.writer   = csv.writer(self.csv_file)
-        self.writer.writerow([
+        self.process = psutil.Process(os.getpid())
+        self.process.cpu_percent()  # Discard first call
+
+        save_dir = os.path.expanduser('~/ros2_ws/src/manipulation_node/manipulation_node')
+
+        # --- Pose CSV ---
+        pose_path = os.path.join(save_dir, '45_to_45.csv')
+        self.pose_file = open(pose_path, 'w', newline='')
+        self.pose_writer = csv.writer(self.pose_file)
+        self.pose_writer.writerow([
             'time_s',
             'cmd_shoulder_rad', 'actual_shoulder_rad', 'shoulder_error_rad', 'shoulder_error_deg',
             'cmd_elbow_rad',    'actual_elbow_rad',    'elbow_error_rad',    'elbow_error_deg',
         ])
+
+        # --- CPU CSV (separate) ---
+        cpu_path = os.path.join(save_dir, '45_to_45_cpu.csv')
+        self.cpu_file = open(cpu_path, 'w', newline='')
+        self.cpu_writer = csv.writer(self.cpu_file)
+        self.cpu_writer.writerow(['time_s', 'node_cpu_percent'])
+
         self.create_timer(10.0, self.stop)
         self.get_logger().info('PoseLogger started — logging for 10 seconds then saving.')
 
@@ -44,40 +57,44 @@ class PoseLogger(Node):
         if any(v is None for v in [self.cmd_shoulder, self.cmd_elbow,
                                     self.actual_shoulder, self.actual_elbow]):
             return
-
         now = time.time()
         if self.t0 is None:
             self.t0 = now
         t = round(now - self.t0, 3)
-
         sh_err = self.cmd_shoulder - self.actual_shoulder
         el_err = self.cmd_elbow    - self.actual_elbow
+        cpu    = self.process.cpu_percent()
 
-        self.writer.writerow([
+        # Write pose row
+        self.pose_writer.writerow([
             t,
             round(self.cmd_shoulder,    4), round(self.actual_shoulder, 4), round(sh_err, 4), round(sh_err * 57.296, 3),
             round(self.cmd_elbow,       4), round(self.actual_elbow,    4), round(el_err, 4), round(el_err * 57.296, 3),
         ])
-        self.csv_file.flush()
+        self.pose_file.flush()
+
+        # Write CPU row (separate file)
+        self.cpu_writer.writerow([t, round(cpu, 1)])
+        self.cpu_file.flush()
 
         self.get_logger().info(
             f't={t:.2f}s | '
             f'Shoulder  sent={self.cmd_shoulder:+.4f}  actual={self.actual_shoulder:+.4f}  err={sh_err:+.4f} rad ({sh_err * 57.296:+.2f} deg) | '
-            f'Elbow  sent={self.cmd_elbow:+.4f}  actual={self.actual_elbow:+.4f}  err={el_err:+.4f} rad ({el_err * 57.296:+.2f} deg)'
+            f'Elbow  sent={self.cmd_elbow:+.4f}  actual={self.actual_elbow:+.4f}  err={el_err:+.4f} rad ({el_err * 57.296:+.2f} deg) | '
+            f'CPU={cpu:.1f}%'
         )
 
     def stop(self):
-        self.csv_file.close()
-        self.get_logger().info('10 seconds done — 45_degree.csv saved. Shutting down.')
+        self.pose_file.close()
+        self.cpu_file.close()
+        self.get_logger().info('10 seconds done — CSVs saved. Shutting down.')
         rclpy.shutdown()
-
 
 def main(args=None):
     rclpy.init(args=args)
     node = PoseLogger()
     rclpy.spin(node)
     node.destroy_node()
-
 
 if __name__ == '__main__':
     main()
