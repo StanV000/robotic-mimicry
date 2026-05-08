@@ -11,12 +11,12 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'numpy', 'matplotlib', 'psutil'],
     zip_safe=True,
     maintainer='robotics',
-    maintainer_email='robotics@todo.todo',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer_email='robotics@example.com',
+    description='ROS2 package for real-time robotic arm manipulation using YOLO keypoint detection',
+    license='Apache-2.0',
     extras_require={
         'test': [
             'pytest',
@@ -24,11 +24,11 @@ setup(
     },
     entry_points={
     'console_scripts': [
-        'manipulation_keypoints = manipulation_node.manipulation_keypoints:main',
-        'arm_simulation     = manipulation_node.arm_simulation:main',
-        'arm_hardware_integration = manipulation_node.arm_hardware_integration:main',
+        'manipulation_keypoints = manipulation_node.nodes.manipulation_keypoints:main',
+        'arm_simulation     = manipulation_node.nodes.arm_simulation:main',
+        'arm_hardware_integration = manipulation_node.nodes.arm_hardware_integration:main',
         'arm_angle_node     = manipulation_node.arm_angle_node:main',
-        'err_analysis      = manipulation_node.err_analysis:main',
+        'err_analysis      = manipulation_node.nodes.err_analysis:main',
     ],
 },
 )

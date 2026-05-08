@@ -4,6 +4,7 @@ from math import atan2, pi, sin, cos
 from collections import deque
 from yolo_msgs.msg import DetectionArray
 from interbotix_xs_msgs.msg import JointGroupCommand
+from .angle_utils import calculate_arm_angles
 
 class ArmAngleNode(Node):
     def __init__(self):
@@ -47,18 +48,7 @@ class ArmAngleNode(Node):
             return
         self.last_publish_time = now
 
-        a1 = atan2(-(elbow[1] - shoulder[1]), (elbow[0] - shoulder[0]))
-        a2 = atan2(-(wrist[1] - elbow[1]),    (wrist[0] - elbow[0]))
-        a1 = atan2(sin(a1), cos(a1))
-
-        relative = a2 - a1
-        relative = atan2(sin(relative), cos(relative))
-
-        shoulder_cmd = atan2(
-            (elbow[1] - shoulder[1]),
-            abs(elbow[0] - shoulder[0])
-        )
-        elbow_cmd = -pi/2 - relative
+        shoulder_cmd, elbow_cmd = calculate_arm_angles(shoulder, elbow, wrist)
 
  
         self.shoulder_window.append(shoulder_cmd)

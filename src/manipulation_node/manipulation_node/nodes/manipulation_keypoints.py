@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from yolo_msgs.msg import DetectionArray, Detection, KeyPoint2D
+from yolo_msgs.msg import DetectionArray, Detection
 
 
 class KeypointsFilterNode(Node):

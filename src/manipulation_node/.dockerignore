@@ -1,0 +1,15 @@
+build
+install
+log
+*.pyc
+*.pyo
+__pycache__
+.git
+.gitignore
+*.log
+*.csv
+*.png
+*.jpg
+*.jpeg
+*.svg
+.DS_Store

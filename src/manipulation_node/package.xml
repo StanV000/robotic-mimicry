@@ -3,9 +3,9 @@
 <package format="3">
   <name>manipulation_node</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="robotics@todo.todo">robotics</maintainer>
-  <license>TODO: License declaration</license>
+  <description>ROS2 package for real-time robotic arm manipulation using YOLO keypoint detection</description>
+  <maintainer email="robotics@example.com">robotics</maintainer>
+  <license>Apache-2.0</license>
 
   <depend>rclpy</depend>
   <depend>yolo_msgs</depend>
