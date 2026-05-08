@@ -60,6 +60,8 @@ source install/setup.bash
 
 ## To run the project
 
+This must be done in a series of steps.
+
 ### Capture Human Poses
 ```bash
 ros2 run manipulation_node manipulation_keypoints
