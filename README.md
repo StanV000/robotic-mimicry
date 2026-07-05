@@ -12,12 +12,12 @@ This project uses YOLOv8 pose estimation with an Intel RealSense D435 camera to 
 | Intel RealSense SDK (librealsense) | [IntelRealSense/librealsense](https://github.com/IntelRealSense/librealsense) |
 | Interbotix X-Series Arms | [Interbotix/interbotix_ros_manipulators](https://github.com/Interbotix/interbotix_ros_manipulators) |
 
-> **Note:** There are several forks/renames of `yolo_ros` floating around (`yolov8_ros`, `yolo_ros_wrapper`, etc.). Use the canonical [mgonzs13/yolo_ros](https://github.com/mgonzs13/yolo_ros) to avoid outdated versions.
+> **Note:** If any of these are wrong, please contact me ASAP.
 
 ## System Overview
 
 ```
-RealSense D435  →  YOLOv8 Pose (yolo_bringup)  →  manipulation_keypoints  →  arm_angle_node  →  Interbotix Arm (sim or hardware)
+RealSense D435  →  YOLOv8 Pose (yolo_bringup)  →  manipulation_keypoints  →  arm_simulation.py OR arm_hardware_integration.py  →  Interbotix Arm
 ```
 
 Each stage depends on the topics published by the previous one, so nodes must be started in order.
@@ -43,21 +43,29 @@ ros2 launch yolo_bringup yolo.launch.py \
     half:=False
 ```
 
-> **Note:** The parameters above (model, device, image size, etc.) are tuned for limited hardware. Adjust them freely  e.g. use `device:=cuda:0` and a larger model like `yolov8m-pose.pt` if you have a GPU available.
+> **Note:** The parameters above (model, device, image size, etc.) are tuned for limited hardware. Adjust them freely - e.g. use `device:=cuda:0` and a larger model like `yolov8m-pose.pt` if you have a GPU available.
 
 ### 2. Manipulation Nodes
 
-Once perception is running, start the keypoint and arm-angle nodes, in this order:
+Once perception is running, start the keypoint node, then the arm control node for your target (sim or hardware):
 
 ```bash
 ros2 run manipulation_node manipulation_keypoints
 ```
 
+**Simulation:**
 ```bash
-ros2 run manipulation_node arm_angle_node
+ros2 run manipulation_node arm_simulation
 ```
 
-`manipulation_keypoints` subscribes to YOLO's pose output and publishes processed keypoint data. `arm_angle_node` subscribes to that keypoint data and computes the target joint angles for the arm.
+**Hardware:**
+```bash
+ros2 run manipulation_node arm_hardware_integration
+```
+
+`manipulation_keypoints` subscribes to YOLO's pose output and publishes processed keypoint data. `arm_simulation` / `arm_hardware_integration` subscribe to that keypoint data, compute the target joint angles, and drive the arm accordingly.
+
+> `arm_angle_node.py` is legacy and no longer used - its functionality has been folded into `arm_simulation.py` and `arm_hardware_integration.py`.
 
 ### 3. Robot Arm
 
@@ -77,17 +85,18 @@ ros2 launch interbotix_xsarm_control xsarm_control.launch.py \
     robot_model:=px150
 ```
 
-> Note: `wx200` is used for simulation and `px150` for the physical arm in this setup adjust `robot_model` if your hardware differs.
+> Note: `wx200` is used for simulation and `px150` for the physical arm in this setup - adjust `robot_model` if your hardware differs, you will have to update `arm_hardware_integration` JointGroupCommand to include the joint values for that specific robot.
 
 ## Startup Order Summary
 
-1. **Camera**  `realsense2_camera`
-2. **Perception**  `yolo_bringup` (YOLOv8 pose)
-3. **Manipulation**  `manipulation_keypoints` → `arm_angle_node`
-4. **Robot**  simulation (`wx200`) or hardware (`px150`)
+1. **Camera** - `realsense2_camera`
+2. **Perception** - `yolo_bringup` (YOLOv8 pose)
+3. **Manipulation** - `manipulation_keypoints` → `arm_simulation` (sim) or `arm_hardware_integration` (hardware)
+4. **Robot** - simulation (`wx200`) or hardware (`px150`)
 
 ## Troubleshooting
 
 - If YOLO struggles to keep up in real time, lower `imgsz_height`/`imgsz_width` or switch to a smaller model (`yolov8n-pose.pt`).
 - If running on limited hardware, keep `device:=cpu` and `half:=False`.
-- Ensure the RealSense camera is publishing on `/camera/camera/color/image_rect_raw` before launching YOLO  check with `ros2 topic list`.
+- Ensure the RealSense camera is publishing on `/camera/camera/color/image_rect_raw` before launching YOLO - check with `ros2 topic list`.
+
